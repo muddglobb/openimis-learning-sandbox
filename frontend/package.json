@@ -1,0 +1,46 @@
+{
+  "name": "openimis-hospital-sandbox",
+  "version": "2.0.0",
+  "description": "Interactive Hospital, Mobile JKN & P-Care learning sandbox powered by OpenIMIS (GraphQL + HL7 FHIR R4)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "verify": "node scripts/smoke-test.js",
+    "verify:fhir": "node scripts/smoke-test.js --fhir",
+    "verify:ui": "node scripts/ui-test.js",
+    "verify:graphql": "node scripts/validate-graphql.js",
+    "verify:schema": "node scripts/schema-contract.js",
+    "verify:capture": "node scripts/capture-queries.js",
+    "verify:e2e": "node scripts/e2e-lifecycle.js",
+    "verify:session": "node scripts/test-session.js",
+    "verify:offline": "npm run verify:graphql && npm run verify:schema",
+    "verify:all": "npm run verify:graphql && npm run verify:schema && npm run verify:capture",
+    "schema:fetch": "node scripts/fetch-schema.js schema-snapshot.json",
+    "schema:inspect": "node scripts/inspect-schema.js schema-snapshot.json",
+    "shots": "node scripts/screenshots.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2"
+  },
+  "keywords": [
+    "openimis",
+    "hospital",
+    "sandbox",
+    "fhir",
+    "graphql",
+    "health-insurance",
+    "bpjs",
+    "jkn",
+    "pcare"
+  ],
+  "author": "Capstone Team",
+  "license": "ISC",
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "graphql": "^17.0.2"
+  }
+}

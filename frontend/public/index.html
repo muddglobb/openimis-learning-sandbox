@@ -1,0 +1,1500 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenIMIS Hospital & Insurance Learning Sandbox</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
+
+  <!-- ============ HEADER ============ -->
+  <header class="glass sticky top-0 z-30 border-b border-slate-200/80 px-5 py-3 flex items-center justify-between shadow-sm">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-600 to-cyan-500 text-white flex items-center justify-center font-bold text-lg shadow-md">
+        🏥
+      </div>
+      <div>
+        <h1 class="text-sm font-bold text-slate-900 leading-tight flex items-center gap-2">
+          OpenIMIS Sandbox
+          <span class="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-sky-100 text-sky-800 uppercase tracking-wide">
+            Learning
+          </span>
+        </h1>
+        <p class="text-[10px] text-slate-500">Simulasi RS · Mobile JKN · P-Care · GraphQL · FHIR</p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <div id="health-badge" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+        <span id="health-dot" class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+        <span id="health-text">Memeriksa...</span>
+      </div>
+
+      <button onclick="GraphQLHelp.open('concept')"
+        class="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-semibold shadow-sm transition"
+        title="Cara kerja GraphQL">
+        <i data-lucide="graduation-cap" class="w-3.5 h-3.5"></i>
+        <span>Cara Kerja GraphQL</span>
+      </button>
+
+      <button onclick="toggleInspectorDrawer()"
+        class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-700 text-[11px] font-semibold transition"
+        title="Lihat token & raw API payload">
+        <i data-lucide="terminal" class="w-3.5 h-3.5"></i>
+        <span class="hidden md:inline">Inspeksi API</span>
+      </button>
+
+      <div class="flex items-center gap-1.5 pl-2 border-l border-slate-200">
+        <div class="w-6 h-6 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-[10px]">A</div>
+        <span id="user-display-name" class="text-[11px] font-semibold text-slate-700 hidden lg:inline">Admin</span>
+        <button onclick="logoutSandbox()" class="text-slate-400 hover:text-slate-600" title="Ganti akun">
+          <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ MAIN LAYOUT ============ -->
+  <div class="flex-1 flex overflow-hidden">
+
+    <!-- ============ SIDEBAR ============ -->
+    <aside class="w-60 bg-white border-r border-slate-200 flex flex-col justify-between py-3 px-2.5 overflow-y-auto flex-shrink-0">
+      <div class="space-y-4">
+
+        <div>
+          <span class="px-2.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Simulasi Bisnis</span>
+          <nav class="space-y-0.5">
+            <a href="#" data-tab="simulation" class="nav-tab active flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-slate-50 transition">
+              <i data-lucide="route" class="w-3.5 h-3.5 text-sky-600"></i><span>Alur Rumah Sakit (E2E)</span>
+            </a>
+            <a href="#" data-tab="mobile-jkn" class="nav-tab flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-slate-50 transition">
+              <i data-lucide="smartphone" class="w-3.5 h-3.5 text-emerald-600"></i><span>Mobile JKN</span>
+            </a>
+            <a href="#" data-tab="pcare" class="nav-tab flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-slate-50 transition">
+              <i data-lucide="stethoscope" class="w-3.5 h-3.5 text-teal-600"></i><span>P-Care (FKTP)</span>
+            </a>
+            <a href="#" data-tab="architecture" class="nav-tab flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-slate-50 transition">
+              <i data-lucide="git-branch" class="w-3.5 h-3.5 text-indigo-600"></i><span>Peta Konsep</span>
+            </a>
+          </nav>
+        </div>
+
+        <div>
+          <span class="px-2.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Layanan RS</span>
+          <nav class="space-y-0.5">
+            <a href="#" data-tab="patients" class="nav-tab flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-slate-50 transition">
+              <i data-lucide="users" class="w-3.5 h-3.5 text-blue-600"></i><span>Pasien & Peserta</span>
+            </a>
+            <a href="#" data-tab="families" class="nav-tab flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-slate-50 transition">
+              <i data-lucide="home" class="w-3.5 h-3.5 text-blue-500"></i><span>Keluarga (KK)</span>
+            </a>
+            <a href="#" data-tab="medical" class="nav-tab flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-slate-50 transition">
+              <i data-lucide="pill" class="w-3.5 h-3.5 text-teal-600"></i><span>Katalog Medis</span>
+            </a>
+            <a href="#" data-tab="pricelist" class="nav-tab flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-slate-50 transition">
+              <i data-lucide="tags" class="w-3.5 h-3.5 text-teal-500"></i><span>Pricelist</span>
+            </a>
+            <a href="#" data-tab="facilities" class="nav-tab flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-slate-50 transition">
+              <i data-lucide="building-2" class="w-3.5 h-3.5 text-cyan-600"></i><span>Faskes & Wilayah</span>
+            </a>
+          </nav>
+        </div>
+
+        <div>
+          <span class="px-2.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Asuransi</span>
+          <nav class="space-y-0.5">
+            <a href="#" data-tab="claims" class="nav-tab flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-slate-50 transition">
+              <i data-lucide="file-check-2" class="w-3.5 h-3.5 text-emerald-600"></i><span>Klaim & Adjudikasi</span>
+            </a>
+            <a href="#" data-tab="policies" class="nav-tab flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-slate-50 transition">
+              <i data-lucide="shield" class="w-3.5 h-3.5 text-amber-600"></i><span>Produk & Polis</span>
+            </a>
+            <a href="#" data-tab="finance" class="nav-tab flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-slate-50 transition">
+              <i data-lucide="wallet" class="w-3.5 h-3.5 text-purple-600"></i><span>Iuran & Premi</span>
+            </a>
+            <a href="#" data-tab="tickets" class="nav-tab flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-slate-50 transition">
+              <i data-lucide="message-square" class="w-3.5 h-3.5 text-rose-600"></i><span>Tiket & Aduan</span>
+            </a>
+          </nav>
+        </div>
+
+        <div>
+          <span class="px-2.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Integrasi & API</span>
+          <nav class="space-y-0.5">
+            <a href="#" data-tab="api-explorer" class="nav-tab flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-slate-50 transition">
+              <i data-lucide="code-2" class="w-3.5 h-3.5 text-pink-600"></i><span>GraphQL Playground</span>
+            </a>
+            <a href="#" data-tab="api-catalog" class="nav-tab flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-slate-50 transition">
+              <i data-lucide="library" class="w-3.5 h-3.5 text-pink-500"></i><span>Katalog API</span>
+            </a>
+            <a href="#" data-tab="fhir" class="nav-tab flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-slate-50 transition">
+              <i data-lucide="share-2" class="w-3.5 h-3.5 text-orange-600"></i><span>HL7 FHIR R4</span>
+            </a>
+          </nav>
+        </div>
+
+      </div>
+
+      <div class="mt-4 pt-3 border-t border-slate-100 text-[10px] text-slate-400 px-2.5">
+        <p class="font-medium text-slate-600">Capstone Project</p>
+        <p>OpenIMIS 26.04</p>
+      </div>
+    </aside>
+
+    <!-- ============ CONTENT ============ -->
+    <main class="flex-1 overflow-y-auto p-5 lg:p-6">
+
+      <!-- ==================================================
+           VIEW: HOSPITAL SIMULATION
+           ================================================== -->
+      <section id="view-simulation" class="view-section space-y-4">
+        <div class="bg-gradient-to-r from-sky-900 to-indigo-950 text-white rounded-2xl p-5 shadow-md relative overflow-hidden">
+          <div class="max-w-2xl space-y-1.5 relative z-10">
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-sky-500/20 text-sky-200 border border-sky-400/30">
+              End-to-End Hospital Journey
+            </span>
+            <h2 class="text-lg font-bold tracking-tight">Simulasi Alur Rumah Sakit & Klaim Asuransi</h2>
+            <p class="text-[11px] text-slate-300 leading-relaxed">
+              Lima tahap yang seluruhnya memanggil API openIMIS sungguhan — dari verifikasi polis
+              sampai adjudikasi klaim. Setiap tahap bisa diperiksa GraphQL-nya.
+            </p>
+          </div>
+          <div class="absolute -right-4 -bottom-6 text-sky-800/20 text-8xl font-black select-none pointer-events-none">RS</div>
+        </div>
+
+        <div class="space-y-3">
+
+          <!-- STAGE 1 -->
+          <div id="sim-step-1" class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-3">
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-start gap-2.5">
+                <div id="sim-dot-1" class="w-7 h-7 rounded-full bg-sky-600 text-white flex items-center justify-center font-bold text-xs shadow flex-shrink-0">1</div>
+                <div>
+                  <h3 class="text-[12px] font-bold text-slate-900">Pendaftaran Pasien &amp; Pengecekan Polis</h3>
+                  <p class="text-[10.5px] text-slate-500">Front office memverifikasi keabsahan kartu peserta sebelum pasien dilayani.</p>
+                </div>
+              </div>
+              <span class="text-[9.5px] font-mono px-2 py-0.5 bg-slate-100 text-slate-600 rounded flex-shrink-0">Front Office</span>
+            </div>
+
+            <div id="sim-content-1" class="pt-3 border-t border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-[10.5px] font-semibold text-slate-700 mb-1">Fasilitas Kesehatan</label>
+                <select id="sim-hf-select" class="w-full p-2 rounded-lg border border-slate-300 text-[11px] focus:ring-2 focus:ring-sky-500 focus:outline-none"></select>
+              </div>
+              <div>
+                <label class="block text-[10.5px] font-semibold text-slate-700 mb-1">Pasien / Peserta</label>
+                <select id="sim-insuree-select" class="w-full p-2 rounded-lg border border-slate-300 text-[11px] focus:ring-2 focus:ring-sky-500 focus:outline-none"></select>
+              </div>
+              <div class="md:col-span-2 flex flex-wrap items-center gap-2">
+                <button onclick="HospitalSimulation.runStep1()"
+                  class="px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-[11px] font-semibold shadow">
+                  Cek Eligibilitas Polis
+                </button>
+                <button id="sim-btn-step1-next" disabled onclick="HospitalSimulation.setStep(2)"
+                  class="px-3 py-1.5 bg-slate-800 hover:bg-slate-900 disabled:opacity-40 disabled:pointer-events-none text-white rounded-lg text-[11px] font-semibold">
+                  Lanjut ke Poli →
+                </button>
+                <button onclick="GraphQLHelp.open('relay')" class="text-[10px] text-slate-500 hover:text-sky-600 underline">Relay ID?</button>
+              </div>
+              <div id="sim-step1-result" class="md:col-span-2"></div>
+            </div>
+          </div>
+
+          <!-- STAGE 2 -->
+          <div id="sim-step-2" class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-3">
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-start gap-2.5">
+                <div id="sim-dot-2" class="w-7 h-7 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-xs flex-shrink-0">2</div>
+                <div>
+                  <h3 class="text-[12px] font-bold text-slate-900">Konsultasi Dokter &amp; Diagnosa ICD-10</h3>
+                  <p class="text-[10.5px] text-slate-500">Dokter mencatat keluhan dan menetapkan kode diagnosis standar.</p>
+                </div>
+              </div>
+              <span class="text-[9.5px] font-mono px-2 py-0.5 bg-slate-100 text-slate-600 rounded flex-shrink-0">Poli Rawat Jalan</span>
+            </div>
+
+            <div id="sim-content-2" class="hidden pt-3 border-t border-slate-100 space-y-3">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-[10.5px] font-semibold text-slate-700 mb-1">Diagnosa Primer (ICD-10)</label>
+                  <select id="sim-diag-select" class="w-full p-2 rounded-lg border border-slate-300 text-[11px] focus:ring-2 focus:ring-sky-500 focus:outline-none"></select>
+                </div>
+                <div>
+                  <label class="block text-[10.5px] font-semibold text-slate-700 mb-1">Keluhan / Anamnesa</label>
+                  <input type="text" id="sim-complaints" value="Demam tinggi 3 hari, menggigil, nyeri sendi"
+                    class="w-full p-2 rounded-lg border border-slate-300 text-[11px] focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                </div>
+              </div>
+              <button onclick="HospitalSimulation.runStep2()"
+                class="px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-[11px] font-semibold shadow">
+                Simpan &amp; Lanjut ke Tindakan →
+              </button>
+              <div id="sim-step2-summary"></div>
+            </div>
+          </div>
+
+          <!-- STAGE 3 -->
+          <div id="sim-step-3" class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-3">
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-start gap-2.5">
+                <div id="sim-dot-3" class="w-7 h-7 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-xs flex-shrink-0">3</div>
+                <div>
+                  <h3 class="text-[12px] font-bold text-slate-900">Tindakan Medis, Resep Obat &amp; Billing</h3>
+                  <p class="text-[10.5px] text-slate-500">Menghitung total biaya berdasarkan katalog harga openIMIS.</p>
+                </div>
+              </div>
+              <span class="text-[9.5px] font-mono px-2 py-0.5 bg-slate-100 text-slate-600 rounded flex-shrink-0">Farmasi &amp; Kasir</span>
+            </div>
+
+            <div id="sim-content-3" class="hidden pt-3 border-t border-slate-100 space-y-3">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <h4 class="text-[10.5px] font-bold text-slate-700 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
+                    <i data-lucide="activity" class="w-3.5 h-3.5 text-purple-600"></i>Tindakan Medis
+                  </h4>
+                  <div id="sim-services-checkboxes" class="space-y-1.5 max-h-48 overflow-y-auto p-1.5 border border-slate-200 rounded-xl bg-slate-50/50"></div>
+                </div>
+                <div>
+                  <h4 class="text-[10.5px] font-bold text-slate-700 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
+                    <i data-lucide="pill" class="w-3.5 h-3.5 text-emerald-600"></i>Obat-obatan
+                  </h4>
+                  <div id="sim-items-checkboxes" class="space-y-1.5 max-h-48 overflow-y-auto p-1.5 border border-slate-200 rounded-xl bg-slate-50/50"></div>
+                </div>
+              </div>
+              <button onclick="HospitalSimulation.runStep3()"
+                class="px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-[11px] font-semibold shadow">
+                Hitung Tagihan &amp; Siapkan Klaim →
+              </button>
+              <div id="sim-step3-bill"></div>
+            </div>
+          </div>
+
+          <!-- STAGE 4 -->
+          <div id="sim-step-4" class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-3">
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-start gap-2.5">
+                <div id="sim-dot-4" class="w-7 h-7 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-xs flex-shrink-0">4</div>
+                <div>
+                  <h3 class="text-[12px] font-bold text-slate-900">Pengajuan Klaim Elektronik (createClaim)</h3>
+                  <p class="text-[10.5px] text-slate-500">Petugas klaim mengirim berkas digital lewat GraphQL mutation.</p>
+                </div>
+              </div>
+              <span class="text-[9.5px] font-mono px-2 py-0.5 bg-slate-100 text-slate-600 rounded flex-shrink-0">Manajemen Klaim</span>
+            </div>
+
+            <div id="sim-content-4" class="hidden pt-3 border-t border-slate-100 space-y-3">
+              <div id="sim-step4-overview"></div>
+              <button id="sim-btn-submit-claim" onclick="HospitalSimulation.runStep4()"
+                class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-bold shadow flex items-center gap-2">
+                <i data-lucide="send" class="w-3.5 h-3.5"></i>Kirim Klaim ke OpenIMIS
+              </button>
+            </div>
+          </div>
+
+          <!-- STAGE 5 -->
+          <div id="sim-step-5" class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-3">
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-start gap-2.5">
+                <div id="sim-dot-5" class="w-7 h-7 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-xs flex-shrink-0">5</div>
+                <div>
+                  <h3 class="text-[12px] font-bold text-slate-900">Verifikasi, Adjudikasi &amp; Pencairan</h3>
+                  <p class="text-[10.5px] text-slate-500">Penjamin mengaudit klaim dan menetapkan nilai penggantian final.</p>
+                </div>
+              </div>
+              <span class="text-[9.5px] font-mono px-2 py-0.5 bg-slate-100 text-slate-600 rounded flex-shrink-0">Penjamin</span>
+            </div>
+
+            <div id="sim-content-5" class="hidden pt-3 border-t border-slate-100">
+              <div id="sim-step5-details"></div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ==================================================
+           VIEW: MOBILE JKN
+           ================================================== -->
+      <section id="view-mobile-jkn" class="view-section hidden space-y-4">
+
+        <div class="bg-gradient-to-r from-emerald-800 to-teal-900 text-white rounded-2xl p-5 shadow-md relative overflow-hidden">
+          <div class="max-w-3xl space-y-1.5 relative z-10">
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-400/20 text-emerald-100 border border-emerald-300/30">
+              Business Process · Peserta
+            </span>
+            <h2 class="text-lg font-bold tracking-tight">Mobile JKN — Alur Layanan Peserta</h2>
+            <p class="text-[11px] text-emerald-100 leading-relaxed">
+              Mobile JKN adalah aplikasi peserta BPJS Kesehatan. Di sandbox ini ia diperankan sebagai
+              aktor: setiap aksi pengguna diterjemahkan menjadi panggilan GraphQL openIMIS,
+              sehingga terlihat jelas konsep mana yang punya padanan di openIMIS dan mana yang tidak.
+            </p>
+          </div>
+          <div class="absolute -right-4 -bottom-6 text-emerald-950/40 text-8xl font-black select-none pointer-events-none">JKN</div>
+        </div>
+
+        <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-[10.5px] text-amber-900 leading-relaxed">
+          <strong>Disclaimer:</strong> tidak ada koneksi ke API BPJS (Mobile JKN / VClaim / P-Care).
+          Ini murni simulasi edukatif di atas instance openIMIS milikmu.
+          <button onclick="GraphQLHelp.open('fhir')" class="underline font-semibold ml-1">GraphQL vs FHIR →</button>
+        </div>
+
+        <!-- Concept map -->
+        <details class="bg-white rounded-2xl border border-slate-200 shadow-sm">
+          <summary class="p-4 cursor-pointer text-[12px] font-bold text-slate-900 flex items-center gap-2">
+            <i data-lucide="git-branch" class="w-4 h-4 text-emerald-600"></i>
+            Peta Konsep: Mobile JKN → openIMIS
+          </summary>
+          <div class="p-4 pt-0 space-y-3">
+            <pre class="p-3 bg-slate-900 text-emerald-300 rounded-xl text-[10px] font-mono overflow-x-auto leading-relaxed">PESERTA                 MOBILE JKN              OPENIMIS
+----------------------  ----------------------  -----------------------------------
+Login (No. Kartu/NIK)   -> Peserta/{noKartu}    -> insurees(chfId)
+Status kepesertaan      -> Status Peserta       -> policyEligibilityByInsuree
+Kelas & hak manfaat     -> Kelas I/II/III       -> Product.code + Policy.ceiling
+Tagihan iuran           -> VA / Kode Billing    -> Premium (receipt, amount, payDate)
+Ganti FKTP              -> Pindah Faskes        -> updateInsuree(healthFacilityId)
+Antrean online          -> Antrean              -> (tidak ada di openIMIS)
+Riwayat pelayanan       -> Riwayat Pelayanan    -> claims(insuree_ChfId)
+Pengaduan               -> Pengaduan            -> createTicket</pre>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-[10.5px]">
+              <div class="p-2.5 bg-emerald-50 border border-emerald-200 rounded-lg">
+                <div class="font-bold text-emerald-900 mb-1">Punya padanan di openIMIS</div>
+                <ul class="list-disc pl-4 text-emerald-800 space-y-0.5">
+                  <li>Identitas &amp; data peserta</li>
+                  <li>Status kepesertaan / eligibilitas</li>
+                  <li>Hak manfaat &amp; plafon</li>
+                  <li>Riwayat pembayaran iuran</li>
+                  <li>Penetapan FKTP</li>
+                  <li>Riwayat pelayanan (klaim)</li>
+                  <li>Pengaduan</li>
+                </ul>
+              </div>
+              <div class="p-2.5 bg-amber-50 border border-amber-200 rounded-lg">
+                <div class="font-bold text-amber-900 mb-1">Tidak ada di openIMIS</div>
+                <ul class="list-disc pl-4 text-amber-800 space-y-0.5">
+                  <li>Antrean online</li>
+                  <li>Virtual Account / kode billing</li>
+                  <li>SEP &amp; nomor rujukan VClaim</li>
+                  <li>Kelas rawat sebagai field khusus</li>
+                  <li>Integrasi SatuSehat</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <!-- Steps -->
+        <div class="space-y-3">
+          <div id="jkn-step-1" class="bg-white rounded-2xl p-5 border-2 border-sky-500 ring-2 ring-sky-500/20 shadow-sm space-y-3">
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-start gap-2.5">
+                <div id="jkn-dot-1" class="w-7 h-7 rounded-full bg-sky-600 text-white flex items-center justify-center font-bold text-xs flex-shrink-0">1</div>
+                <div>
+                  <h3 class="text-[12px] font-bold text-slate-900">Login Peserta</h3>
+                  <p class="text-[10.5px] text-slate-500">Peserta masuk dengan nomor kartu. openIMIS mencari lewat <code class="font-mono">insurees(chfId:)</code>.</p>
+                </div>
+              </div>
+              <span class="text-[9.5px] font-mono px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded flex-shrink-0">insurees</span>
+            </div>
+            <div id="jkn-body-1" class="pt-3 border-t border-slate-100 space-y-2">
+              <select id="jkn-card-input" class="w-full p-2 border border-slate-300 rounded-lg text-[11px] focus:ring-2 focus:ring-sky-500 focus:outline-none"></select>
+              <button onclick="MobileJknSimulator.step1()"
+                class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-semibold">
+                Masuk
+              </button>
+              <div id="jkn-out-1"></div>
+            </div>
+          </div>
+
+          <div id="jkn-step-2" class="bg-white rounded-2xl p-5 border border-slate-200 opacity-50 shadow-sm space-y-3">
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-start gap-2.5">
+                <div id="jkn-dot-2" class="w-7 h-7 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-xs flex-shrink-0">2</div>
+                <div>
+                  <h3 class="text-[12px] font-bold text-slate-900">Cek Status Kepesertaan</h3>
+                  <p class="text-[10.5px] text-slate-500">AKTIF / NONAKTIF diterjemahkan dari ada-tidaknya polis aktif.</p>
+                </div>
+              </div>
+              <span class="text-[9.5px] font-mono px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded flex-shrink-0">eligibility</span>
+            </div>
+            <div id="jkn-body-2" class="hidden pt-3 border-t border-slate-100"><div id="jkn-out-2"></div></div>
+          </div>
+
+          <div id="jkn-step-3" class="bg-white rounded-2xl p-5 border border-slate-200 opacity-50 shadow-sm space-y-3">
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-start gap-2.5">
+                <div id="jkn-dot-3" class="w-7 h-7 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-xs flex-shrink-0">3</div>
+                <div>
+                  <h3 class="text-[12px] font-bold text-slate-900">Kelas &amp; Hak Manfaat</h3>
+                  <p class="text-[10.5px] text-slate-500">Kelas I/II/III dipetakan ke produk &amp; plafon polis.</p>
+                </div>
+              </div>
+              <span class="text-[9.5px] font-mono px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded flex-shrink-0">policies</span>
+            </div>
+            <div id="jkn-body-3" class="hidden pt-3 border-t border-slate-100"><div id="jkn-out-3"></div></div>
+          </div>
+
+          <div id="jkn-step-4" class="bg-white rounded-2xl p-5 border border-slate-200 opacity-50 shadow-sm space-y-3">
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-start gap-2.5">
+                <div id="jkn-dot-4" class="w-7 h-7 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-xs flex-shrink-0">4</div>
+                <div>
+                  <h3 class="text-[12px] font-bold text-slate-900">Tagihan Iuran</h3>
+                  <p class="text-[10.5px] text-slate-500">VA / kode billing BPJS tidak ada; yang dicatat adalah <code class="font-mono">Premium</code>.</p>
+                </div>
+              </div>
+              <span class="text-[9.5px] font-mono px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded flex-shrink-0">premiums</span>
+            </div>
+            <div id="jkn-body-4" class="hidden pt-3 border-t border-slate-100"><div id="jkn-out-4"></div></div>
+          </div>
+
+          <div id="jkn-step-5" class="bg-white rounded-2xl p-5 border border-slate-200 opacity-50 shadow-sm space-y-3">
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-start gap-2.5">
+                <div id="jkn-dot-5" class="w-7 h-7 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-xs flex-shrink-0">5</div>
+                <div>
+                  <h3 class="text-[12px] font-bold text-slate-900">Pilih / Ganti FKTP</h3>
+                  <p class="text-[10.5px] text-slate-500">FKTP = <code class="font-mono">HealthFacility</code> level C.</p>
+                </div>
+              </div>
+              <span class="text-[9.5px] font-mono px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded flex-shrink-0">healthFacilities</span>
+            </div>
+            <div id="jkn-body-5" class="hidden pt-3 border-t border-slate-100"><div id="jkn-out-5"></div></div>
+          </div>
+
+          <div id="jkn-step-6" class="bg-white rounded-2xl p-5 border border-slate-200 opacity-50 shadow-sm space-y-3">
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-start gap-2.5">
+                <div id="jkn-dot-6" class="w-7 h-7 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-xs flex-shrink-0">6</div>
+                <div>
+                  <h3 class="text-[12px] font-bold text-slate-900">Ambil Antrean Online</h3>
+                  <p class="text-[10.5px] text-slate-500">Tidak ada di openIMIS — disimulasikan agar alur tetap utuh.</p>
+                </div>
+              </div>
+              <span class="text-[9.5px] font-mono px-2 py-0.5 bg-amber-100 text-amber-800 rounded flex-shrink-0">simulasi</span>
+            </div>
+            <div id="jkn-body-6" class="hidden pt-3 border-t border-slate-100"><div id="jkn-out-6"></div></div>
+          </div>
+
+          <div id="jkn-step-7" class="bg-white rounded-2xl p-5 border border-slate-200 opacity-50 shadow-sm space-y-3">
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-start gap-2.5">
+                <div id="jkn-dot-7" class="w-7 h-7 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-xs flex-shrink-0">7</div>
+                <div>
+                  <h3 class="text-[12px] font-bold text-slate-900">Riwayat Pelayanan</h3>
+                  <p class="text-[10.5px] text-slate-500">Kunjungan = <code class="font-mono">Claim</code> milik peserta.</p>
+                </div>
+              </div>
+              <span class="text-[9.5px] font-mono px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded flex-shrink-0">claims</span>
+            </div>
+            <div id="jkn-body-7" class="hidden pt-3 border-t border-slate-100"><div id="jkn-out-7"></div></div>
+          </div>
+
+          <div id="jkn-step-8" class="bg-white rounded-2xl p-5 border border-slate-200 opacity-50 shadow-sm space-y-3">
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-start gap-2.5">
+                <div id="jkn-dot-8" class="w-7 h-7 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-xs flex-shrink-0">8</div>
+                <div>
+                  <h3 class="text-[12px] font-bold text-slate-900">Ajukan Pengaduan</h3>
+                  <p class="text-[10.5px] text-slate-500">Aduan peserta = <code class="font-mono">Ticket</code> di modul grievance.</p>
+                </div>
+              </div>
+              <span class="text-[9.5px] font-mono px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded flex-shrink-0">createTicket</span>
+            </div>
+            <div id="jkn-body-8" class="hidden pt-3 border-t border-slate-100"><div id="jkn-out-8"></div></div>
+          </div>
+        </div>
+
+        <div class="flex justify-end">
+          <button onclick="MobileJknSimulator.reset()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[11px] font-semibold">
+            Reset Simulasi
+          </button>
+        </div>
+      </section>
+
+      <!-- ==================================================
+           VIEW: P-CARE
+           ================================================== -->
+      <section id="view-pcare" class="view-section hidden space-y-4">
+
+        <div class="bg-gradient-to-r from-teal-800 to-cyan-900 text-white rounded-2xl p-5 shadow-md relative overflow-hidden">
+          <div class="max-w-3xl space-y-1.5 relative z-10">
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-teal-400/20 text-teal-100 border border-teal-300/30">
+              Business Process · Faskes Primer
+            </span>
+            <h2 class="text-lg font-bold tracking-tight">P-Care — Alur Pelayanan FKTP (Puskesmas / Klinik)</h2>
+            <p class="text-[11px] text-teal-100 leading-relaxed">
+              P-Care adalah aplikasi BPJS untuk fasilitas kesehatan tingkat pertama. Sandbox memerankan
+              petugas FKTP: dari mencari peserta sampai mengirim klaim dan melihat hasil adjudikasi —
+              seluruhnya memakai mutation openIMIS sungguhan.
+            </p>
+          </div>
+          <div class="absolute -right-4 -bottom-6 text-teal-950/40 text-8xl font-black select-none pointer-events-none">PC</div>
+        </div>
+
+        <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-[10.5px] text-amber-900 leading-relaxed">
+          <strong>Disclaimer:</strong> tidak ada koneksi ke API P-Care BPJS. Nomor SEP dan nomor
+          rujukan disimpan sebagai string di klaim, bukan diterbitkan oleh VClaim.
+        </div>
+
+        <!-- Mapping table -->
+        <details class="bg-white rounded-2xl border border-slate-200 shadow-sm">
+          <summary class="p-4 cursor-pointer text-[12px] font-bold text-slate-900 flex items-center gap-2">
+            <i data-lucide="table" class="w-4 h-4 text-teal-600"></i>
+            Tabel Pemetaan Field BPJS / P-Care → openIMIS
+          </summary>
+          <div class="p-4 pt-0">
+            <div class="overflow-x-auto rounded-lg border border-slate-200">
+              <table class="w-full text-[10.5px]">
+                <thead class="bg-slate-50 text-slate-600"><tr>
+                  <th class="p-2 text-left">Konsep BPJS / P-Care</th>
+                  <th class="p-2 text-left">Field / Entitas openIMIS</th>
+                  <th class="p-2 text-left">Catatan</th>
+                </tr></thead>
+                <tbody class="text-slate-600">
+                  <tr class="border-t border-slate-100"><td class="p-2">No. Kartu Peserta</td><td class="p-2 font-mono text-sky-700">Insuree.chfId</td><td class="p-2">13 digit</td></tr>
+                  <tr class="border-t border-slate-100"><td class="p-2">NIK</td><td class="p-2 font-mono text-sky-700">Insuree.passport / jsonExt</td><td class="p-2">Tidak ada field NIK native</td></tr>
+                  <tr class="border-t border-slate-100"><td class="p-2">PISA (1=Peserta, 2=Istri, 3=Suami, 4=Anak)</td><td class="p-2 font-mono text-sky-700">Insuree.relationshipId</td><td class="p-2">via <code>relations</code></td></tr>
+                  <tr class="border-t border-slate-100"><td class="p-2">Kelas Perawatan I/II/III</td><td class="p-2 font-mono text-sky-700">Product.code</td><td class="p-2">Dipetakan ke produk</td></tr>
+                  <tr class="border-t border-slate-100"><td class="p-2">FKTP</td><td class="p-2 font-mono text-sky-700">HealthFacility (level = "C")</td><td class="p-2">Puskesmas / klinik</td></tr>
+                  <tr class="border-t border-slate-100"><td class="p-2">FKRTL / RS Rujukan</td><td class="p-2 font-mono text-sky-700">HealthFacility (level = "H")</td><td class="p-2">Rumah sakit</td></tr>
+                  <tr class="border-t border-slate-100"><td class="p-2">SEP</td><td class="p-2 font-mono text-sky-700">Claim.guaranteeId + referralCode</td><td class="p-2">SEP bukan entitas tersendiri</td></tr>
+                  <tr class="border-t border-slate-100"><td class="p-2">Diagnosa ICD-10</td><td class="p-2 font-mono text-sky-700">Claim.icd / icd1..icd4</td><td class="p-2">Diagnosa primer &amp; sekunder</td></tr>
+                  <tr class="border-t border-slate-100"><td class="p-2">Tindakan</td><td class="p-2 font-mono text-sky-700">ClaimService.service</td><td class="p-2">Harga dari pricelist</td></tr>
+                  <tr class="border-t border-slate-100"><td class="p-2">Obat</td><td class="p-2 font-mono text-sky-700">ClaimItem.item</td><td class="p-2">Formularium nasional</td></tr>
+                  <tr class="border-t border-slate-100"><td class="p-2">Kunjungan</td><td class="p-2 font-mono text-sky-700">Claim (visitType, careType)</td><td class="p-2">O = rawat jalan</td></tr>
+                  <tr class="border-t border-slate-100"><td class="p-2">Status Klaim</td><td class="p-2 font-mono text-sky-700">Claim.status</td><td class="p-2">1/2/4/8/16</td></tr>
+                  <tr class="border-t border-slate-100"><td class="p-2">Nomor Rujukan</td><td class="p-2 font-mono text-sky-700">Claim.referralCode</td><td class="p-2">String, bukan diterbitkan VClaim</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </details>
+
+        <!-- Steps -->
+        <div class="space-y-3">
+          <div id="pcare-step-1" class="bg-white rounded-2xl p-5 border-2 border-teal-500 ring-2 ring-teal-500/20 shadow-sm space-y-3">
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-start gap-2.5">
+                <div id="pcare-dot-1" class="w-7 h-7 rounded-full bg-teal-600 text-white flex items-center justify-center font-bold text-xs flex-shrink-0">1</div>
+                <div>
+                  <h3 class="text-[12px] font-bold text-slate-900">Login Faskes</h3>
+                  <p class="text-[10.5px] text-slate-500">Pilih Puskesmas/Klinik yang sedang bertugas.</p>
+                </div>
+              </div>
+              <span class="text-[9.5px] font-mono px-2 py-0.5 bg-teal-100 text-teal-800 rounded flex-shrink-0">healthFacilities</span>
+            </div>
+            <div id="pcare-body-1" class="pt-3 border-t border-slate-100"><div id="pcare-out-1"></div></div>
+          </div>
+
+          <div id="pcare-step-2" class="bg-white rounded-2xl p-5 border border-slate-200 opacity-50 shadow-sm space-y-3">
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-start gap-2.5">
+                <div id="pcare-dot-2" class="w-7 h-7 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-xs flex-shrink-0">2</div>
+                <div>
+                  <h3 class="text-[12px] font-bold text-slate-900">Cari Peserta</h3>
+                  <p class="text-[10.5px] text-slate-500">Berdasarkan nomor kartu.</p>
+                </div>
+              </div>
+              <span class="text-[9.5px] font-mono px-2 py-0.5 bg-teal-100 text-teal-800 rounded flex-shrink-0">insurees</span>
+            </div>
+            <div id="pcare-body-2" class="hidden pt-3 border-t border-slate-100"><div id="pcare-out-2"></div></div>
+          </div>
+
+          <div id="pcare-step-3" class="bg-white rounded-2xl p-5 border border-slate-200 opacity-50 shadow-sm space-y-3">
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-start gap-2.5">
+                <div id="pcare-dot-3" class="w-7 h-7 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-xs flex-shrink-0">3</div>
+                <div>
+                  <h3 class="text-[12px] font-bold text-slate-900">Validasi Eligibilitas (pengganti SEP)</h3>
+                  <p class="text-[10.5px] text-slate-500">SEP tidak ada di openIMIS; yang dipakai adalah hasil eligibility.</p>
+                </div>
+              </div>
+              <span class="text-[9.5px] font-mono px-2 py-0.5 bg-teal-100 text-teal-800 rounded flex-shrink-0">eligibility</span>
+            </div>
+            <div id="pcare-body-3" class="hidden pt-3 border-t border-slate-100"><div id="pcare-out-3"></div></div>
+          </div>
+
+          <div id="pcare-step-4" class="bg-white rounded-2xl p-5 border border-slate-200 opacity-50 shadow-sm space-y-3">
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-start gap-2.5">
+                <div id="pcare-dot-4" class="w-7 h-7 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-xs flex-shrink-0">4</div>
+                <div>
+                  <h3 class="text-[12px] font-bold text-slate-900">Daftarkan Kunjungan</h3>
+                  <p class="text-[10.5px] text-slate-500">Kunjungan dibuat sebagai Claim status 2 Entered.</p>
+                </div>
+              </div>
+              <span class="text-[9.5px] font-mono px-2 py-0.5 bg-teal-100 text-teal-800 rounded flex-shrink-0">createClaim</span>
+            </div>
+            <div id="pcare-body-4" class="hidden pt-3 border-t border-slate-100"><div id="pcare-out-4"></div></div>
+          </div>
+
+          <div id="pcare-step-5" class="bg-white rounded-2xl p-5 border border-slate-200 opacity-50 shadow-sm space-y-3">
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-start gap-2.5">
+                <div id="pcare-dot-5" class="w-7 h-7 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-xs flex-shrink-0">5</div>
+                <div>
+                  <h3 class="text-[12px] font-bold text-slate-900">Input Tindakan</h3>
+                  <p class="text-[10.5px] text-slate-500">Tindakan menjadi ClaimService.</p>
+                </div>
+              </div>
+              <span class="text-[9.5px] font-mono px-2 py-0.5 bg-teal-100 text-teal-800 rounded flex-shrink-0">updateClaim</span>
+            </div>
+            <div id="pcare-body-5" class="hidden pt-3 border-t border-slate-100"><div id="pcare-out-5"></div></div>
+          </div>
+
+          <div id="pcare-step-6" class="bg-white rounded-2xl p-5 border border-slate-200 opacity-50 shadow-sm space-y-3">
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-start gap-2.5">
+                <div id="pcare-dot-6" class="w-7 h-7 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-xs flex-shrink-0">6</div>
+                <div>
+                  <h3 class="text-[12px] font-bold text-slate-900">Input Resep Obat</h3>
+                  <p class="text-[10.5px] text-slate-500">Obat menjadi ClaimItem.</p>
+                </div>
+              </div>
+              <span class="text-[9.5px] font-mono px-2 py-0.5 bg-teal-100 text-teal-800 rounded flex-shrink-0">updateClaim</span>
+            </div>
+            <div id="pcare-body-6" class="hidden pt-3 border-t border-slate-100"><div id="pcare-out-6"></div></div>
+          </div>
+
+          <div id="pcare-step-7" class="bg-white rounded-2xl p-5 border border-slate-200 opacity-50 shadow-sm space-y-3">
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-start gap-2.5">
+                <div id="pcare-dot-7" class="w-7 h-7 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-xs flex-shrink-0">7</div>
+                <div>
+                  <h3 class="text-[12px] font-bold text-slate-900">Rujukan ke FKRTL (opsional)</h3>
+                  <p class="text-[10.5px] text-slate-500">Dicatat di Claim.referToId + referralCode.</p>
+                </div>
+              </div>
+              <span class="text-[9.5px] font-mono px-2 py-0.5 bg-teal-100 text-teal-800 rounded flex-shrink-0">updateClaim</span>
+            </div>
+            <div id="pcare-body-7" class="hidden pt-3 border-t border-slate-100"><div id="pcare-out-7"></div></div>
+          </div>
+
+          <div id="pcare-step-8" class="bg-white rounded-2xl p-5 border border-slate-200 opacity-50 shadow-sm space-y-3">
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-start gap-2.5">
+                <div id="pcare-dot-8" class="w-7 h-7 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-xs flex-shrink-0">8</div>
+                <div>
+                  <h3 class="text-[12px] font-bold text-slate-900">Kirim &amp; Proses Klaim</h3>
+                  <p class="text-[10.5px] text-slate-500">submitClaims lalu processClaims.</p>
+                </div>
+              </div>
+              <span class="text-[9.5px] font-mono px-2 py-0.5 bg-teal-100 text-teal-800 rounded flex-shrink-0">submit/process</span>
+            </div>
+            <div id="pcare-body-8" class="hidden pt-3 border-t border-slate-100"><div id="pcare-out-8"></div></div>
+          </div>
+
+          <div id="pcare-step-9" class="bg-white rounded-2xl p-5 border border-slate-200 opacity-50 shadow-sm space-y-3">
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-start gap-2.5">
+                <div id="pcare-dot-9" class="w-7 h-7 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-xs flex-shrink-0">9</div>
+                <div>
+                  <h3 class="text-[12px] font-bold text-slate-900">Ringkasan &amp; Pemetaan</h3>
+                  <p class="text-[10.5px] text-slate-500">Rekap seluruh langkah P-Care → openIMIS.</p>
+                </div>
+              </div>
+              <span class="text-[9.5px] font-mono px-2 py-0.5 bg-slate-100 text-slate-600 rounded flex-shrink-0">ringkasan</span>
+            </div>
+            <div id="pcare-body-9" class="hidden pt-3 border-t border-slate-100"><div id="pcare-out-9"></div></div>
+          </div>
+        </div>
+
+        <div class="flex justify-end">
+          <button onclick="PcareSimulator.reset()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[11px] font-semibold">
+            Reset Simulasi
+          </button>
+        </div>
+      </section>
+
+      <!-- ==================================================
+           VIEW: ARCHITECTURE
+           ================================================== -->
+      <section id="view-architecture" class="view-section hidden space-y-4">
+        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
+          <div>
+            <h2 class="text-sm font-bold text-slate-900">Peta Konsep &amp; Arsitektur OpenIMIS</h2>
+            <p class="text-[11px] text-slate-500 mt-1">
+              Empat pilar jaminan kesehatan: <strong>Peserta</strong>, <strong>Faskes</strong>,
+              <strong>Produk &amp; Polis</strong>, dan <strong>Klaim</strong>.
+            </p>
+          </div>
+
+          <pre class="p-4 bg-slate-900 text-emerald-300 rounded-xl overflow-x-auto text-[10px] font-mono leading-relaxed">+-------------------------------------------------------------------------------+
+|                            ARSITEKTUR CORE OPENIMIS                           |
++-------------------------------------------------------------------------------+
+
+   [ tblLocations ]  (wilayah geografis)
+          |
+          +---------------------------+
+          |                           |
+          v                           v
+   [ tblFamilies ]            [ tblHealthFacilities ]   (RS / Puskesmas / Klinik)
+          |                           |
+          v                           |
+   [ tblInsuree ]  (peserta)          |
+          |                           |
+          |      [ tblProduct ]       |
+          |            |              |
+          v            v              |
+   [ tblPolicies ]  (polis aktif)     |
+          |                           |
+          +------------+--------------+
+                       |
+                       v
+              [ tblClaim ]  (klaim pelayanan)
+                       |
+          +------------+------------+
+          |                         |
+          v                         v
+  [ tblClaimServices ]      [ tblClaimItems ]
+  (tindakan)                (obat / alkes)</pre>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-[10.5px]">
+            <div class="p-3 bg-sky-50 border border-sky-200 rounded-xl space-y-1">
+              <h4 class="font-bold text-sky-900">1. Alur Keuangan &amp; Polis</h4>
+              <p class="text-slate-600 leading-relaxed">Keluarga membayar iuran (<code>Premium</code>) → polis terbit → polis menentukan plafon yang dicover saat berobat.</p>
+            </div>
+            <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl space-y-1">
+              <h4 class="font-bold text-emerald-900">2. Alur Pelayanan &amp; Klaim</h4>
+              <p class="text-slate-600 leading-relaxed">Pasien berobat → dokter mencatat ICD-10 &amp; tindakan → RS menagih klaim → openIMIS memvalidasi &amp; menghitung penggantian.</p>
+            </div>
+            <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-1">
+              <h4 class="font-bold text-amber-900">3. Status Klaim</h4>
+              <p class="text-slate-600 leading-relaxed">
+                <code>2 Entered</code> → <code>4 Checked</code> → <code>8 Processed</code> →
+                <code>16 Valuated</code>. Status <code>1 Rejected</code> bisa muncul di tahap verifikasi.
+              </p>
+            </div>
+            <div class="p-3 bg-rose-50 border border-rose-200 rounded-xl space-y-1">
+              <h4 class="font-bold text-rose-900">4. Dua API</h4>
+              <p class="text-slate-600 leading-relaxed">GraphQL (<code>/api/graphql</code>) untuk aplikasi internal &amp; mutation; FHIR R4 (<code>/api/api_fhir_r4/</code>) untuk interoperabilitas.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================================================
+           VIEW: PATIENTS
+           ================================================== -->
+      <section id="view-patients" class="view-section hidden space-y-4">
+        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+            <div>
+              <h2 class="text-sm font-bold text-slate-900">Data Peserta (Insurees)</h2>
+              <p class="text-[11px] text-slate-500">Peserta terdaftar dalam database jaminan kesehatan openIMIS.</p>
+            </div>
+            <button onclick="GraphQLHelp.open('relay')"
+              class="px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-emerald-300 rounded-lg text-[10.5px] font-mono font-semibold">
+              Relay ID?
+            </button>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <input type="text" id="patients-filter-chfid" placeholder="CHFID..."
+              class="p-2 border border-slate-300 rounded-lg text-[11px] w-36 focus:ring-2 focus:ring-sky-500 focus:outline-none">
+            <input type="text" id="patients-filter-name" placeholder="Nama belakang..."
+              class="p-2 border border-slate-300 rounded-lg text-[11px] w-40 focus:ring-2 focus:ring-sky-500 focus:outline-none">
+            <select id="patients-filter-gender" class="p-2 border border-slate-300 rounded-lg text-[11px] focus:ring-2 focus:ring-sky-500 focus:outline-none">
+              <option value="">Semua gender</option>
+              <option value="M">Laki-laki</option>
+              <option value="F">Perempuan</option>
+            </select>
+            <button onclick="PatientsModule.applyFilter()"
+              class="px-3 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-[11px] font-semibold">Terapkan</button>
+            <button onclick="PatientsModule.load()"
+              class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg" title="Reset">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+            </button>
+            <input type="text" oninput="PatientsModule.search(this.value)" placeholder="Cari cepat..."
+              class="p-2 border border-slate-300 rounded-lg text-[11px] w-44 focus:ring-2 focus:ring-sky-500 focus:outline-none ml-auto">
+            <button onclick="PatientsModule.openCreate()"
+              class="px-3 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-[11px] font-semibold shadow flex items-center gap-1.5">
+              <i data-lucide="user-plus" class="w-3.5 h-3.5"></i>Pasien Baru
+            </button>
+          </div>
+          <div id="patients-count" class="text-[10px] text-slate-500"></div>
+
+          <div class="overflow-x-auto rounded-xl border border-slate-200">
+            <table class="w-full text-left text-[11px]">
+              <thead class="bg-slate-50 border-b border-slate-200 font-semibold text-slate-600">
+                <tr>
+                  <th class="p-2.5">CHFID</th>
+                  <th class="p-2.5">NAMA</th>
+                  <th class="p-2.5">LAHIR</th>
+                  <th class="p-2.5">GENDER</th>
+                  <th class="p-2.5">TELEPON</th>
+                  <th class="p-2.5">KELUARGA</th>
+                  <th class="p-2.5">FASKES</th>
+                  <th class="p-2.5 text-right">AKSI</th>
+                </tr>
+              </thead>
+              <tbody id="patients-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================================================
+           VIEW: FAMILIES
+           ================================================== -->
+      <section id="view-families" class="view-section hidden space-y-4">
+        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h2 class="text-sm font-bold text-slate-900">Keluarga (Kartu Keluarga)</h2>
+              <p class="text-[11px] text-slate-500">Satu keluarga menaungi banyak peserta. Setiap keluarga wajib punya kepala keluarga.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <input type="text" oninput="FamiliesModule.search(this.value)" placeholder="Cari alamat / CHFID..."
+                class="p-2 border border-slate-300 rounded-lg text-[11px] w-44 focus:ring-2 focus:ring-sky-500 focus:outline-none">
+              <button onclick="FamiliesModule.load()" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg" title="Refresh">
+                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+              </button>
+              <button onclick="FamiliesModule.openCreate()"
+                class="px-3 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-[11px] font-semibold shadow flex items-center gap-1.5">
+                <i data-lucide="plus" class="w-3.5 h-3.5"></i>Keluarga Baru
+              </button>
+            </div>
+          </div>
+          <div id="families-count" class="text-[10px] text-slate-500"></div>
+          <div class="overflow-x-auto rounded-xl border border-slate-200">
+            <table class="w-full text-left text-[11px]">
+              <thead class="bg-slate-50 border-b border-slate-200 font-semibold text-slate-600">
+                <tr>
+                  <th class="p-2.5">UUID</th>
+                  <th class="p-2.5">KEPALA KELUARGA</th>
+                  <th class="p-2.5">ALAMAT</th>
+                  <th class="p-2.5">WILAYAH</th>
+                  <th class="p-2.5">POVERTY</th>
+                  <th class="p-2.5">NO. KK</th>
+                  <th class="p-2.5 text-right">AKSI</th>
+                </tr>
+              </thead>
+              <tbody id="families-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================================================
+           VIEW: CLAIMS
+           ================================================== -->
+      <section id="view-claims" class="view-section hidden space-y-4">
+        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+            <div>
+              <h2 class="text-sm font-bold text-slate-900">Klaim &amp; Adjudikasi</h2>
+              <p class="text-[11px] text-slate-500">
+                Status: <code class="text-red-600">1 Rejected</code> ·
+                <code class="text-amber-600">2 Entered</code> ·
+                <code class="text-blue-600">4 Checked</code> ·
+                <code class="text-purple-600">8 Processed</code> ·
+                <code class="text-emerald-600">16 Valuated</code>
+              </p>
+            </div>
+            <button onclick="GraphQLHelp.open('mutation')"
+              class="px-3 py-2 bg-slate-900 hover:bg-slate-800 text-emerald-300 rounded-lg text-[11px] font-semibold">
+              Siklus Klaim →
+            </button>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <select id="claims-filter-status" class="p-2 border border-slate-300 rounded-lg text-[11px] focus:ring-2 focus:ring-sky-500 focus:outline-none">
+              <option value="">Semua status</option>
+              <option value="1">1 — Rejected</option>
+              <option value="2">2 — Entered</option>
+              <option value="4">4 — Checked</option>
+              <option value="8">8 — Processed</option>
+              <option value="16">16 — Valuated</option>
+            </select>
+            <input type="text" id="claims-filter-chfid" placeholder="CHFID..."
+              class="p-2 border border-slate-300 rounded-lg text-[11px] w-32 focus:ring-2 focus:ring-sky-500 focus:outline-none">
+            <input type="date" id="claims-filter-date"
+              class="p-2 border border-slate-300 rounded-lg text-[11px] focus:ring-2 focus:ring-sky-500 focus:outline-none">
+            <button onclick="ClaimsModule.applyFilter()"
+              class="px-3 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-[11px] font-semibold">Filter</button>
+            <button onclick="ClaimsModule.load()" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg" title="Reset">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+            </button>
+            <input type="text" oninput="ClaimsModule.search(this.value)" placeholder="Cari cepat..."
+              class="p-2 border border-slate-300 rounded-lg text-[11px] w-40 focus:ring-2 focus:ring-sky-500 focus:outline-none ml-auto">
+            <button onclick="ClaimsModule.openCreate()"
+              class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-semibold shadow flex items-center gap-1.5">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i>Klaim Baru
+            </button>
+          </div>
+          <div id="claims-count" class="text-[10px] text-slate-500"></div>
+
+          <div class="overflow-x-auto rounded-xl border border-slate-200">
+            <table class="w-full text-left text-[11px]">
+              <thead class="bg-slate-50 border-b border-slate-200 font-semibold text-slate-600">
+                <tr>
+                  <th class="p-2.5">KODE</th>
+                  <th class="p-2.5">FASKES</th>
+                  <th class="p-2.5">PASIEN</th>
+                  <th class="p-2.5">TANGGAL</th>
+                  <th class="p-2.5">STATUS</th>
+                  <th class="p-2.5 text-right">DITAGIH</th>
+                  <th class="p-2.5 text-right">DISETUJUI</th>
+                  <th class="p-2.5 text-right">AKSI</th>
+                </tr>
+              </thead>
+              <tbody id="claims-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================================================
+           VIEW: MEDICAL CATALOG
+           ================================================== -->
+      <section id="view-medical" class="view-section hidden space-y-4">
+        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h2 class="text-sm font-bold text-slate-900">Katalog Medis</h2>
+              <p class="text-[11px] text-slate-500">Diagnosa ICD-10, formularium obat, dan tarif tindakan.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <input type="text" oninput="MedicalModule.onSearch(this.value)" placeholder="Cari kode / nama..."
+                class="p-2 border border-slate-300 rounded-lg text-[11px] w-44 focus:ring-2 focus:ring-sky-500 focus:outline-none">
+              <div class="flex items-center gap-1 p-1 bg-slate-100 rounded-xl">
+                <button id="subtab-med-diagnoses" onclick="MedicalModule.load('diagnoses')"
+                  class="px-3 py-1.5 text-[11px] font-semibold rounded-lg bg-sky-600 text-white shadow-sm">Diagnosa</button>
+                <button id="subtab-med-items" onclick="MedicalModule.load('items')"
+                  class="px-3 py-1.5 text-[11px] font-semibold rounded-lg bg-white text-slate-600 hover:bg-slate-50 shadow-sm">Obat</button>
+                <button id="subtab-med-services" onclick="MedicalModule.load('services')"
+                  class="px-3 py-1.5 text-[11px] font-semibold rounded-lg bg-white text-slate-600 hover:bg-slate-50 shadow-sm">Tindakan</button>
+              </div>
+              <button id="medical-btn-add" onclick="MedicalModule.openAdd()" style="display:none"
+                class="px-3 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-[11px] font-semibold shadow flex items-center gap-1.5">
+                <i data-lucide="plus" class="w-3.5 h-3.5"></i>Tambah
+              </button>
+            </div>
+          </div>
+          <div id="medical-content-box" class="rounded-xl border border-slate-200"></div>
+        </div>
+      </section>
+
+      <!-- ==================================================
+           VIEW: PRICELIST
+           ================================================== -->
+      <section id="view-pricelist" class="view-section hidden space-y-4">
+        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h2 class="text-sm font-bold text-slate-900">Pricelist Medis</h2>
+              <p class="text-[11px] text-slate-500">Daftar harga yang dipakai saat adjudikasi klaim dihitung.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="flex items-center gap-1 p-1 bg-slate-100 rounded-xl">
+                <button id="pl-tab-items" onclick="PricelistModule.switchTab('items')"
+                  class="px-3 py-1.5 text-[11px] font-semibold rounded-lg bg-sky-600 text-white shadow-sm">Obat</button>
+                <button id="pl-tab-services" onclick="PricelistModule.switchTab('services')"
+                  class="px-3 py-1.5 text-[11px] font-semibold rounded-lg bg-white text-slate-600 hover:bg-slate-50 shadow-sm">Tindakan</button>
+              </div>
+              <button onclick="PricelistModule.openCreate()"
+                class="px-3 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-[11px] font-semibold shadow flex items-center gap-1.5">
+                <i data-lucide="plus" class="w-3.5 h-3.5"></i>Pricelist Baru
+              </button>
+            </div>
+          </div>
+          <div id="pricelist-content-box" class="rounded-xl border border-slate-200"></div>
+        </div>
+      </section>
+
+      <!-- ==================================================
+           VIEW: FACILITIES
+           ================================================== -->
+      <section id="view-facilities" class="view-section hidden space-y-4">
+        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h2 class="text-sm font-bold text-slate-900">Fasilitas Kesehatan</h2>
+              <p class="text-[11px] text-slate-500">Rumah sakit (H), puskesmas (C), dan klinik (D) mitra penjamin.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="FacilitiesModule.load()" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg" title="Refresh">
+                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+              </button>
+              <button onclick="FacilitiesModule.openCreate()"
+                class="px-3 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg text-[11px] font-semibold shadow flex items-center gap-1.5">
+                <i data-lucide="plus" class="w-3.5 h-3.5"></i>Faskes Baru
+              </button>
+            </div>
+          </div>
+          <div class="overflow-x-auto rounded-xl border border-slate-200">
+            <table class="w-full text-left text-[11px]">
+              <thead class="bg-slate-50 border-b border-slate-200 font-semibold text-slate-600">
+                <tr>
+                  <th class="p-2.5">KODE</th>
+                  <th class="p-2.5">NAMA</th>
+                  <th class="p-2.5">LEVEL</th>
+                  <th class="p-2.5">WILAYAH</th>
+                  <th class="p-2.5">STATUS</th>
+                  <th class="p-2.5">CARE</th>
+                  <th class="p-2.5 text-right">AKSI</th>
+                </tr>
+              </thead>
+              <tbody id="facilities-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-sm font-bold text-slate-900">Wilayah Administratif</h2>
+              <p class="text-[11px] text-slate-500">Hirarki region → district → ward → village.</p>
+            </div>
+            <button onclick="FacilitiesModule.openCreateLocation()"
+              class="px-3 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-[11px] font-semibold shadow flex items-center gap-1.5">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i>Wilayah Baru
+            </button>
+          </div>
+          <div class="overflow-x-auto rounded-xl border border-slate-200">
+            <table class="w-full text-left text-[11px]">
+              <thead class="bg-slate-50 border-b border-slate-200 font-semibold text-slate-600">
+                <tr>
+                  <th class="p-2.5">KODE</th>
+                  <th class="p-2.5">NAMA</th>
+                  <th class="p-2.5">TIPE</th>
+                  <th class="p-2.5">INDUK</th>
+                  <th class="p-2.5 text-right">AKSI</th>
+                </tr>
+              </thead>
+              <tbody id="locations-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================================================
+           VIEW: POLICIES & PRODUCTS
+           ================================================== -->
+      <section id="view-policies" class="view-section hidden space-y-4">
+        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-sm font-bold text-slate-900">Produk Jaminan</h2>
+              <p class="text-[11px] text-slate-500">Paket asuransi: premi, plafon, batas cicilan, dan periode.</p>
+            </div>
+            <button onclick="PoliciesModule.openCreateProduct()"
+              class="px-3 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-[11px] font-semibold shadow flex items-center gap-1.5">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i>Produk Baru
+            </button>
+          </div>
+          <div class="overflow-x-auto rounded-xl border border-slate-200">
+            <table class="w-full text-left text-[11px]">
+              <thead class="bg-slate-50 border-b border-slate-200 font-semibold text-slate-600">
+                <tr>
+                  <th class="p-2.5">KODE</th>
+                  <th class="p-2.5">NAMA</th>
+                  <th class="p-2.5 text-right">LUMP SUM</th>
+                  <th class="p-2.5">CICILAN</th>
+                  <th class="p-2.5">CEILING TYPE</th>
+                  <th class="p-2.5 text-right">AKSI</th>
+                </tr>
+              </thead>
+              <tbody id="products-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-sm font-bold text-slate-900">Polis</h2>
+              <p class="text-[11px] text-slate-500">Kontrak perlindungan aktif yang mengikat keluarga peserta.</p>
+            </div>
+            <button onclick="PoliciesModule.openCreatePolicy()"
+              class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-semibold shadow flex items-center gap-1.5">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i>Terbitkan Polis
+            </button>
+          </div>
+          <div class="overflow-x-auto rounded-xl border border-slate-200">
+            <table class="w-full text-left text-[11px]">
+              <thead class="bg-slate-50 border-b border-slate-200 font-semibold text-slate-600">
+                <tr>
+                  <th class="p-2.5">UUID</th>
+                  <th class="p-2.5">PRODUK</th>
+                  <th class="p-2.5">KEPALA KELUARGA</th>
+                  <th class="p-2.5">MULAI</th>
+                  <th class="p-2.5">KADALUWARSA</th>
+                  <th class="p-2.5">STATUS</th>
+                  <th class="p-2.5 text-right">AKSI</th>
+                </tr>
+              </thead>
+              <tbody id="policies-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================================================
+           VIEW: FINANCE
+           ================================================== -->
+      <section id="view-finance" class="view-section hidden space-y-4">
+        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-sm font-bold text-slate-900">Iuran &amp; Premi</h2>
+              <p class="text-[11px] text-slate-500">Pembayaran iuran peserta yang mengaktifkan polis.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <input type="text" oninput="FinanceModule.search(this.value)" placeholder="Cari kwitansi..."
+                class="p-2 border border-slate-300 rounded-lg text-[11px] w-40 focus:ring-2 focus:ring-sky-500 focus:outline-none">
+              <button onclick="FinanceModule.load()" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg" title="Refresh">
+                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+              </button>
+              <button onclick="FinanceModule.openCreate()"
+                class="px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-[11px] font-semibold shadow flex items-center gap-1.5">
+                <i data-lucide="plus" class="w-3.5 h-3.5"></i>Catat Premi
+              </button>
+            </div>
+          </div>
+          <div id="premiums-summary"></div>
+          <div id="premiums-count" class="text-[10px] text-slate-500"></div>
+          <div class="overflow-x-auto rounded-xl border border-slate-200">
+            <table class="w-full text-left text-[11px]">
+              <thead class="bg-slate-50 border-b border-slate-200 font-semibold text-slate-600">
+                <tr>
+                  <th class="p-2.5">UUID</th>
+                  <th class="p-2.5">PRODUK / PESERTA</th>
+                  <th class="p-2.5 text-right">NOMINAL</th>
+                  <th class="p-2.5">TANGGAL</th>
+                  <th class="p-2.5">METODE</th>
+                  <th class="p-2.5">KWITANSI</th>
+                  <th class="p-2.5 text-right">AKSI</th>
+                </tr>
+              </thead>
+              <tbody id="premiums-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================================================
+           VIEW: TICKETS
+           ================================================== -->
+      <section id="view-tickets" class="view-section hidden space-y-4">
+        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-sm font-bold text-slate-900">Tiket &amp; Pengaduan</h2>
+              <p class="text-[11px] text-slate-500">Keluhan pelayanan dan sengketa klaim (modul grievance).</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <input type="text" oninput="TicketsModule.search(this.value)" placeholder="Cari tiket..."
+                class="p-2 border border-slate-300 rounded-lg text-[11px] w-40 focus:ring-2 focus:ring-sky-500 focus:outline-none">
+              <button onclick="TicketsModule.load()" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg" title="Refresh">
+                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+              </button>
+              <button onclick="TicketsModule.openCreate()"
+                class="px-3 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-[11px] font-semibold shadow flex items-center gap-1.5">
+                <i data-lucide="plus" class="w-3.5 h-3.5"></i>Tiket Baru
+              </button>
+            </div>
+          </div>
+          <div id="tickets-count" class="text-[10px] text-slate-500"></div>
+          <div class="overflow-x-auto rounded-xl border border-slate-200">
+            <table class="w-full text-left text-[11px]">
+              <thead class="bg-slate-50 border-b border-slate-200 font-semibold text-slate-600">
+                <tr>
+                  <th class="p-2.5">KODE</th>
+                  <th class="p-2.5">JUDUL</th>
+                  <th class="p-2.5">PELAPOR</th>
+                  <th class="p-2.5">KATEGORI</th>
+                  <th class="p-2.5">STATUS</th>
+                  <th class="p-2.5 text-right">AKSI</th>
+                </tr>
+              </thead>
+              <tbody id="tickets-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================================================
+           VIEW: GRAPHQL PLAYGROUND
+           ================================================== -->
+      <section id="view-api-explorer" class="view-section hidden space-y-4">
+        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+            <div>
+              <h2 class="text-sm font-bold text-slate-900">GraphQL Playground</h2>
+              <p class="text-[11px] text-slate-500">
+                Satu endpoint, banyak operasi. <kbd class="px-1 py-0.5 bg-slate-100 rounded text-[9px] font-mono">Ctrl+Enter</kbd> untuk menjalankan.
+              </p>
+            </div>
+            <div class="flex flex-wrap gap-1.5">
+              <button onclick="GraphQLHelp.open('concept')"
+                class="px-2.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-[10.5px] font-semibold">
+                Panduan
+              </button>
+              <button onclick="ApiExplorerModule.formatQuery()"
+                class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[10.5px] font-semibold">
+                Format
+              </button>
+              <button onclick="ApiExplorerModule.saveCurrent()"
+                class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[10.5px] font-semibold">
+                Simpan
+              </button>
+              <button onclick="ApiExplorerModule.copyAsCurl()"
+                class="px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-emerald-300 rounded-lg text-[10.5px] font-mono font-semibold">
+                cURL
+              </button>
+              <button onclick="ApiExplorerModule.clearAll()"
+                class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[10.5px] font-semibold">
+                Bersihkan
+              </button>
+            </div>
+          </div>
+
+          <!-- Template library -->
+          <div class="border border-slate-200 rounded-xl overflow-hidden">
+            <div class="px-3 py-2 bg-slate-50 border-b border-slate-200">
+              <span class="text-[10px] font-bold text-slate-600 uppercase tracking-wide">Template per Modul</span>
+            </div>
+            <div id="gql-template-bar" class="flex gap-1 p-2 overflow-x-auto border-b border-slate-100 bg-white"></div>
+            <div id="gql-template-list" class="max-h-32 overflow-y-auto bg-white"></div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-3">
+            <!-- Editor + variables -->
+            <div class="lg:col-span-2 space-y-3">
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-[10.5px] font-bold text-slate-600">Query / Mutation</span>
+                  <button onclick="ApiExplorerModule.copyQuery()" class="text-[10px] text-sky-600 hover:underline">Salin</button>
+                </div>
+                <textarea id="gql-editor" rows="11" spellcheck="false"
+                  class="w-full p-3 font-mono text-[11px] bg-slate-900 text-emerald-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 shadow-inner leading-relaxed"></textarea>
+              </div>
+
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-[10.5px] font-bold text-slate-600">Variables (JSON)</span>
+                  <button onclick="ApiExplorerModule.copyVariables()" class="text-[10px] text-sky-600 hover:underline">Salin</button>
+                </div>
+                <textarea id="gql-variables" rows="5" spellcheck="false"
+                  class="w-full p-3 font-mono text-[11px] bg-slate-950 text-sky-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 shadow-inner leading-relaxed"></textarea>
+              </div>
+
+              <button id="gql-btn-run" onclick="ApiExplorerModule.execute()"
+                class="w-full py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-[11px] font-bold shadow">
+                Jalankan (Ctrl+Enter)
+              </button>
+            </div>
+
+            <!-- Response + schema -->
+            <div class="space-y-3">
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-[10.5px] font-bold text-slate-600">Response</span>
+                  <span id="gql-status" class="text-[9.5px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">IDLE</span>
+                </div>
+                <pre id="gql-output" class="w-full p-3 font-mono text-[10.5px] bg-slate-950 text-amber-200 rounded-xl max-h-64 overflow-auto shadow-inner whitespace-pre">Hasil query akan muncul di sini...</pre>
+              </div>
+
+              <div class="border border-slate-200 rounded-xl overflow-hidden">
+                <div class="px-2.5 py-1.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                  <span class="text-[10px] font-bold text-slate-600 uppercase tracking-wide">Schema Browser</span>
+                  <button onclick="ApiExplorerModule.loadSchema()" class="text-[10px] text-sky-600 hover:underline">Muat</button>
+                </div>
+                <div id="gql-schema-panel" class="max-h-64 overflow-y-auto bg-white">
+                  <div class="p-3 text-[10px] text-slate-400 text-center">
+                    Klik "Muat" untuk mengambil skema via introspection.
+                  </div>
+                </div>
+              </div>
+
+              <div class="border border-slate-200 rounded-xl overflow-hidden">
+                <div class="px-2.5 py-1.5 bg-slate-50 border-b border-slate-200">
+                  <span class="text-[10px] font-bold text-slate-600 uppercase tracking-wide">Query Tersimpan</span>
+                </div>
+                <div id="gql-saved-list" class="max-h-32 overflow-y-auto bg-white p-1"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================================================
+           VIEW: API CATALOG
+           ================================================== -->
+      <section id="view-api-catalog" class="view-section hidden space-y-4">
+        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
+          <div>
+            <h2 class="text-sm font-bold text-slate-900">Katalog API OpenIMIS 26.04</h2>
+            <p class="text-[11px] text-slate-500">
+              Seluruh operasi GraphQL dan resource FHIR yang tersedia pada instalasi ini.
+              Operasi bertanda <span class="px-1 py-0.5 bg-emerald-100 text-emerald-800 rounded text-[9.5px] font-semibold">dipakai UI</span>
+              punya halaman sendiri; sisanya bisa dijalankan dari Playground.
+            </p>
+          </div>
+          <div id="catalog-stats"></div>
+          <div id="catalog-filters"></div>
+
+          <div class="overflow-x-auto rounded-xl border border-slate-200">
+            <table class="w-full text-left text-[11px]">
+              <thead class="bg-slate-50 border-b border-slate-200 font-semibold text-slate-600">
+                <tr>
+                  <th class="p-2.5 w-12">TIPE</th>
+                  <th class="p-2.5 w-48">NAMA</th>
+                  <th class="p-2.5">SIGNATURE</th>
+                  <th class="p-2.5">CATATAN</th>
+                  <th class="p-2.5 w-24">STATUS</th>
+                  <th class="p-2.5 w-28 text-right">AKSI</th>
+                </tr>
+              </thead>
+              <tbody id="catalog-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
+          <div>
+            <h2 class="text-sm font-bold text-slate-900">Resource HL7 FHIR R4</h2>
+            <p class="text-[11px] text-slate-500">Endpoint REST terstandar untuk interoperabilitas.</p>
+          </div>
+          <div class="overflow-x-auto rounded-xl border border-slate-200">
+            <table class="w-full text-left text-[11px]">
+              <thead class="bg-slate-50 border-b border-slate-200 font-semibold text-slate-600">
+                <tr>
+                  <th class="p-2.5">RESOURCE</th>
+                  <th class="p-2.5">MODUL</th>
+                  <th class="p-2.5">KETERANGAN</th>
+                  <th class="p-2.5 text-right">AKSI</th>
+                </tr>
+              </thead>
+              <tbody id="catalog-fhir-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================================================
+           VIEW: FHIR
+           ================================================== -->
+      <section id="view-fhir" class="view-section hidden space-y-4">
+        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+            <div>
+              <h2 class="text-sm font-bold text-slate-900">HL7 FHIR R4 Explorer</h2>
+              <p class="text-[11px] text-slate-500">Standar REST untuk integrasi EMR/HIS ke openIMIS.</p>
+            </div>
+            <button onclick="GraphQLHelp.open('fhir')"
+              class="px-3 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-[11px] font-semibold">
+              GraphQL vs FHIR
+            </button>
+          </div>
+
+          <div id="fhir-resource-buttons"></div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+            <div class="flex gap-1.5">
+              <input type="text" id="fhir-id-input" placeholder="Resource ID..."
+                class="flex-1 p-2 border border-slate-300 rounded-lg text-[11px] focus:ring-2 focus:ring-orange-500 focus:outline-none">
+              <button onclick="FhirModule.loadById()" class="px-2.5 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-[10.5px] font-semibold">GET by ID</button>
+            </div>
+            <div class="flex gap-1.5">
+              <input type="text" id="fhir-search-input" placeholder="identifier=... atau name=..."
+                class="flex-1 p-2 border border-slate-300 rounded-lg text-[11px] focus:ring-2 focus:ring-orange-500 focus:outline-none">
+              <button onclick="FhirModule.search()" class="px-2.5 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-[10.5px] font-semibold">Search</button>
+            </div>
+            <div class="flex gap-1.5">
+              <input type="number" id="fhir-count-input" value="10" min="1" max="100"
+                class="w-20 p-2 border border-slate-300 rounded-lg text-[11px] focus:ring-2 focus:ring-orange-500 focus:outline-none">
+              <button onclick="FhirModule.copyJson()" class="flex-1 px-2.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[10.5px] font-semibold">Salin JSON</button>
+              <button onclick="FhirModule.copyCurl()" class="px-2.5 py-2 bg-slate-900 hover:bg-slate-800 text-emerald-300 rounded-lg text-[10.5px] font-mono font-semibold">cURL</button>
+            </div>
+          </div>
+
+          <div class="p-3 bg-slate-900 rounded-xl space-y-2">
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-2">
+              <span id="fhir-current-url" class="text-[10.5px] font-mono text-orange-400">GET /api/api_fhir_r4/Patient/</span>
+              <div id="fhir-meta" class="flex gap-1"></div>
+            </div>
+            <pre id="fhir-json-viewer" class="text-slate-300 text-[10px] font-mono max-h-[28rem] overflow-auto whitespace-pre">Memuat data FHIR...</pre>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ============ INSPECTOR DRAWER ============ -->
+  <aside id="inspector-drawer" class="drawer fixed top-0 right-0 h-full w-96 bg-slate-900 text-white shadow-2xl z-40 translate-x-full flex flex-col border-l border-slate-800">
+    <div class="p-3.5 border-b border-slate-800 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <i data-lucide="terminal" class="w-4 h-4 text-sky-400"></i>
+        <h3 class="text-[11px] font-bold uppercase tracking-wider text-slate-300">API &amp; Token Inspector</h3>
+      </div>
+      <button onclick="toggleInspectorDrawer()" class="text-slate-400 hover:text-white p-1">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+
+    <div class="p-3.5 border-b border-slate-800 space-y-1.5 bg-slate-950/50">
+      <div class="flex justify-between items-center text-[10px]">
+        <span class="font-bold text-slate-400">ACTIVE JWT</span>
+        <button onclick="copyJwtToken()" class="text-sky-400 hover:underline">Salin</button>
+      </div>
+      <textarea id="inspect-token-text" readonly rows="2"
+        class="w-full p-2 bg-slate-900 border border-slate-800 rounded font-mono text-[9px] text-slate-400 focus:outline-none"></textarea>
+      <div id="inspect-session-status" class="text-[10px] font-mono text-slate-500">Masa berlaku token: memeriksa...</div>
+      <div class="flex items-center justify-between">
+        <button onclick="GraphQLHelp.open('auth')" class="text-[10px] text-sky-400 hover:underline">Bagaimana JWT bekerja?</button>
+        <button onclick="forceRefreshToken()" class="text-[10px] text-emerald-400 hover:underline">Perpanjang sekarang</button>
+      </div>
+    </div>
+
+    <div class="p-3.5 flex-1 overflow-y-auto space-y-2">
+      <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Riwayat Panggilan API</span>
+      <div id="inspector-history-list" class="space-y-2"></div>
+    </div>
+  </aside>
+
+  <!-- ============ MODAL ============ -->
+  <div id="app-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div id="modal-panel" class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl space-y-4 border border-slate-200">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+        <h3 id="modal-title" class="font-bold text-slate-900 text-sm">Modal</h3>
+        <button onclick="AppModal.close()" class="text-slate-400 hover:text-slate-600 p-1">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <div id="modal-body" class="max-h-[74vh] overflow-y-auto text-xs"></div>
+    </div>
+  </div>
+
+  <!-- ============ TOASTS ============ -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm pointer-events-none"></div>
+
+  <!-- ============ SCRIPTS ============ -->
+  <script src="/js/util.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/api-catalog-data.js"></script>
+  <script src="/js/graphql-help.js"></script>
+  <script src="/js/app.js"></script>
+  <script src="/js/modules/simulation.js"></script>
+  <script src="/js/modules/mobile-jkn.js"></script>
+  <script src="/js/modules/pcare.js"></script>
+  <script src="/js/modules/patients.js"></script>
+  <script src="/js/modules/families.js"></script>
+  <script src="/js/modules/claims.js"></script>
+  <script src="/js/modules/medical.js"></script>
+  <script src="/js/modules/pricelist.js"></script>
+  <script src="/js/modules/facilities.js"></script>
+  <script src="/js/modules/policies.js"></script>
+  <script src="/js/modules/finance.js"></script>
+  <script src="/js/modules/tickets.js"></script>
+  <script src="/js/modules/fhir.js"></script>
+  <script src="/js/modules/api-explorer.js"></script>
+  <script src="/js/modules/api-catalog.js"></script>
+</body>
+</html>
