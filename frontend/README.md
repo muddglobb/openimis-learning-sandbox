@@ -1,10 +1,25 @@
 # OpenIMIS Hospital & Insurance Learning Sandbox
 
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
+
 Sandbox pembelajaran interaktif di atas **openIMIS 26.04**. Menyediakan simulasi alur rumah sakit,
 **Mobile JKN**, **P-Care (FKTP)**, GraphQL Playground lengkap dengan dokumentasi skema, katalog
 seluruh API openIMIS, dan penjelajah **HL7 FHIR R4**.
 
 Seluruh data berasal dari instance openIMIS milikmu sendiri — tidak ada data tiruan.
+
+> ### Atribusi & Lisensi
+>
+> Proyek ini adalah **karya turunan** dari [openIMIS](https://openimis.org) —
+> [openimis/openimis-dist_dkr](https://github.com/openimis/openimis-dist_dkr) —
+> © openIMIS contributors, dilisensikan di bawah **GNU Affero General Public License v3.0**.
+>
+> Seluruh isi folder `frontend/` dibangun di atas dan mengikuti lisensi yang sama.
+> Karena AGPL v3 bersifat *copyleft jaringan*, siapa pun yang menjalankan versi modifikasi
+> dari perangkat lunak ini sebagai layanan jaringan wajib menyediakan source code-nya.
+>
+> Teks lisensi lengkap: [`LICENSE.md`](../LICENSE.md) dan
+> [`GNU AFFERO GENERAL PUBLIC LICENSE.md`](../GNU%20AFFERO%20GENERAL%20PUBLIC%20LICENSE.md).
 
 ---
 
