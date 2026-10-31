@@ -229,6 +229,48 @@ app.get('/api/schema', async (req, res) => {
 });
 
 // ------------------------------------------------------------
+// Anomaly detection (Python: aturan + IsolationForest)
+// ------------------------------------------------------------
+const { spawn } = require('child_process');
+const PYTHON_BIN = process.env.PYTHON_BIN || 'python3';
+const ANOMALY_SCRIPT = path.join(__dirname, 'ai', 'claim_anomaly.py');
+const ANOMALY_MAX_CLAIMS = 5000;
+
+function runAnomaly(claims) {
+  return new Promise((resolve, reject) => {
+    const py = spawn(PYTHON_BIN, ['-I', ANOMALY_SCRIPT]);
+    let out = '';
+    let err = '';
+    const timer = setTimeout(() => { py.kill(); reject(new Error('Analisis melebihi 60 detik')); }, 60000);
+    py.stdout.on('data', d => { out += d; });
+    py.stderr.on('data', d => { err += d; });
+    py.on('error', e => { clearTimeout(timer); reject(new Error(`Python tidak bisa dijalankan (${PYTHON_BIN}): ${e.message}`)); });
+    py.on('close', code => {
+      clearTimeout(timer);
+      if (code !== 0) return reject(new Error(err.trim().split('\n').pop() || `Python exit ${code}`));
+      try { resolve(JSON.parse(out)); } catch (e) { reject(new Error('Output Python bukan JSON')); }
+    });
+    py.stdin.end(JSON.stringify({ claims }));
+  });
+}
+
+app.post('/api/anomaly/claims', async (req, res) => {
+  const claims = req.body && req.body.claims;
+  if (!Array.isArray(claims)) {
+    return res.status(400).json({ error: 'Body harus berisi array "claims".' });
+  }
+  if (claims.length > ANOMALY_MAX_CLAIMS) {
+    return res.status(413).json({ error: `Maksimal ${ANOMALY_MAX_CLAIMS} klaim per analisis.` });
+  }
+  try {
+    return res.json(await runAnomaly(claims));
+  } catch (err) {
+    console.error('[anomaly]', err.message);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// ------------------------------------------------------------
 // SPA fallback
 // ------------------------------------------------------------
 app.get('*', (req, res) => {
