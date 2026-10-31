@@ -115,6 +115,9 @@
             <a href="#" data-tab="finance" class="nav-tab flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-slate-50 transition">
               <i data-lucide="wallet" class="w-3.5 h-3.5 text-purple-600"></i><span>Iuran & Premi</span>
             </a>
+            <a href="#" data-tab="anomaly" class="nav-tab flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-slate-50 transition">
+              <i data-lucide="scan-search" class="w-3.5 h-3.5 text-red-600"></i><span>Deteksi Anomali Klaim</span>
+            </a>
             <a href="#" data-tab="tickets" class="nav-tab flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-slate-50 transition">
               <i data-lucide="message-square" class="w-3.5 h-3.5 text-rose-600"></i><span>Tiket & Aduan</span>
             </a>
@@ -1380,6 +1383,37 @@ Pengaduan               -> Pengaduan            -> createTicket</pre>
       <!-- ==================================================
            VIEW: FHIR
            ================================================== -->
+      <section id="view-anomaly" class="view-section hidden space-y-4">
+        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+            <div>
+              <h2 class="text-sm font-bold text-slate-900">Deteksi Anomali Klaim</h2>
+              <p class="text-[11px] text-slate-500 max-w-2xl">
+                Mengambil klaim dari openIMIS lalu menandai yang perlu dicek ulang: tagihan di atas harga katalog,
+                dikoreksi penjamin, biaya/lama rawat outlier per diagnosa, klaim ganda, dan pola aneh (IsolationForest).
+              </p>
+            </div>
+            <button id="anomaly-run" onclick="AnomalyModule.run()"
+              class="px-3 py-2 bg-slate-900 hover:bg-slate-800 text-emerald-300 rounded-lg text-[11px] font-semibold">
+              Analisis Klaim
+            </button>
+          </div>
+          <div id="anomaly-summary" class="text-[11px] text-slate-600"></div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left">
+              <thead class="bg-slate-50 text-[10px] uppercase text-slate-500">
+                <tr>
+                  <th class="p-2.5">Kode</th><th class="p-2.5">ICD</th>
+                  <th class="p-2.5 text-right">Diklaim</th><th class="p-2.5 text-right">Disetujui</th>
+                  <th class="p-2.5">Lama</th><th class="p-2.5">Skor</th><th class="p-2.5">Alasan</th>
+                </tr>
+              </thead>
+              <tbody id="anomaly-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
       <section id="view-fhir" class="view-section hidden space-y-4">
         <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
           <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
@@ -1496,5 +1530,6 @@ Pengaduan               -> Pengaduan            -> createTicket</pre>
   <script src="/js/modules/fhir.js"></script>
   <script src="/js/modules/api-explorer.js"></script>
   <script src="/js/modules/api-catalog.js"></script>
+  <script src="/js/modules/anomaly.js"></script>
 </body>
 </html>
