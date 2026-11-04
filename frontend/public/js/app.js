@@ -126,6 +126,7 @@ const AppRouter = {
       case 'patients':        PatientsModule.load(); break;
       case 'families':        FamiliesModule.load(); break;
       case 'claims':          ClaimsModule.load(); break;
+      case 'anomaly':         AnomalyModule.init(); break;
       case 'facilities':      FacilitiesModule.load(); break;
       case 'medical':         MedicalModule.load('diagnoses'); break;
       case 'pricelist':       PricelistModule.load(); break;

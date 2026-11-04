@@ -426,6 +426,30 @@ adjudikasi menolaknya. Lihat bug #1 di bawah untuk alasannya.
 
 ---
 
+## Deteksi Anomali Klaim
+
+Tab **Deteksi Anomali Klaim** mengambil klaim dari openIMIS (`claims`), mengirimkannya ke
+`POST /api/anomaly/claims`, lalu skrip Python `ai/claim_anomaly.py` menandai klaim yang perlu dicek.
+
+| Sinyal | Cara kerja |
+|---|---|
+| Tagihan di atas katalog | diklaim > 1,2 × jumlah (qty × harga katalog) item/tindakan |
+| Dikoreksi penjamin | disetujui / diklaim < 0,8 (klaim berstatus 8/16) |
+| Biaya outlier | robust z-score (median/MAD) biaya per diagnosa ICD > 5 |
+| Lama rawat ekstrem | robust z-score lama rawat per diagnosa > 5 |
+| Klaim ganda | peserta + diagnosa sama, tanggal mulai ≤ 7 hari |
+| Pola aneh | IsolationForest dilatih per-batch pada klaim yang dikirim (min. 30 klaim) |
+
+Prasyarat: Python 3.10+ dengan `pip install -r ai/requirements.txt`. Atur `PYTHON_BIN` bila
+perintahnya bukan `python3`. Ambang ada di `RULES` pada `ai/claim_anomaly.py`.
+
+Catatan: aturan "tagihan di atas katalog" hanya berlaku untuk klaim yang punya rincian
+item/tindakan, sedangkan openIMIS 26.04 tidak dapat menyimpan klaim dengan rincian (lihat
+bagian Bug). Pada klaim tanpa rincian, sinyal lain tetap berjalan. Ambang belum divalidasi
+pada data klaim nyata.
+
+---
+
 ## Batasan
 
 1. **Tidak ada koneksi ke BPJS.** Mobile JKN, P-Care, VClaim, SEP, dan antrean hanya disimulasikan.
